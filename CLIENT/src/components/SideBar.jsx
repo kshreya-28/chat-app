@@ -1,95 +1,76 @@
-import React, { useState, useContext } from 'react'
-import assets from '../assets/assets'
+import React, { useContext } from 'react'
+import assets, { userDummyData } from '../assets/assets'
 import { useNavigate } from 'react-router-dom'
 import { AuthContext } from '../../context/AuthContext'
 
-const ProfilePage = () => {
-  const { authUser, updateProfile } = useContext(AuthContext)
-
-  const [selectedImg, setSelectedImg] = useState(null)
+const Sidebar = ({ selectedUser, setSelectedUser }) => {
+  const { logout } = useContext(AuthContext)
   const navigate = useNavigate()
-  const [name, setName] = useState(authUser?.fullName || '')
-  const [bio, setBio] = useState(authUser?.bio || '')
-
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    if (!selectedImg) {
-      await updateProfile({ fullName: name, bio })
-      navigate('/')
-      return
-    }
-
-    const reader = new FileReader()
-    reader.readAsDataURL(selectedImg)
-    reader.onload = async () => {
-      const base64Image = reader.result
-      await updateProfile({ profilePic: base64Image, fullName: name, bio })
-      navigate('/')
-    }
-  }
 
   return (
-    <div className='min-h-screen bg-cover bg-no-repeat flex items-center justify-center bg-black'>
-      <div className='w-5/6 max-w-2xl backdrop-blur-2xl text-gray-300 border-2 border-stone-500 flex items-center justify-between max-sm:flex-col-reverse rounded-lg'>
+    <div className='bg-[#001030]/20 text-white w-full p-5 flex flex-col justify-between h-full border-r border-gray-700'>
+      <div className='flex flex-col gap-5'>
+        
+        {/* Top Header */}
+        <div className='flex items-center justify-between'>
+          <img src={assets.logo} alt="logo" className='w-28' />
+          <div className='relative group cursor-pointer'>
+            <img src={assets.menu_icon} alt="menu" className='w-5' />
+            <div className='absolute right-0 top-full mt-2 w-32 bg-[#282142] p-3 rounded-md hidden group-hover:block border border-gray-600 z-10'>
+              <p onClick={() => navigate('/profile')} className='text-sm text-gray-300 hover:text-white cursor-pointer mb-2'>
+                Edit Profile
+              </p>
+              <hr className="my-2 border-t border-gray-500" />
+              <p onClick={() => logout()} className='cursor-pointer text-sm text-gray-300 hover:text-white'>
+                Logout
+              </p>
+            </div>
+          </div>
+        </div>
 
-        {/* ------ profile form ------ */}
-        <form onSubmit={handleSubmit} className='flex flex-col gap-5 p-10 flex-1'>
-          <h3 className='text-lg'>Profile details</h3>
-
-          <label htmlFor="avatar" className='flex items-center gap-3 cursor-pointer'>
-            <input
-              onChange={(e) => setSelectedImg(e.target.files[0])}
-              type="file"
-              id='avatar'
-              accept='.png, .jpg, .jpeg'
-              hidden
-            />
-            <img
-              src={selectedImg ? URL.createObjectURL(selectedImg) : (authUser?.profilePic || assets.avatar_icon)}
-              alt=""
-              className={`w-12 h-12 ${selectedImg && 'rounded-full'}`}
-            />
-            upload profile image
-          </label>
-
+        {/* Search Bar */}
+        <div className='bg-[#282142] flex items-center gap-2 px-3 py-2 rounded-md border border-gray-600'>
+          <img src={assets.search_icon} alt="search" className='w-4' />
           <input
-            onChange={(e) => setName(e.target.value)}
-            value={name}
             type="text"
-            required
-            placeholder='Your name'
-            className='p-2 border border-gray-500 rounded-md focus:outline-none bg-transparent'
+            placeholder="Search here..."
+            className='bg-transparent outline-none text-sm text-white placeholder-gray-400 w-full'
           />
+        </div>
 
-          <textarea
-            onChange={(e) => setBio(e.target.value)}
-            value={bio}
-            placeholder='Write profile bio'
-            required
-            rows={4}
-            className='p-2 border border-gray-500 rounded-md focus:outline-none bg-transparent'
-          ></textarea>
+        {/* Users List */}
+        <div className='flex flex-col gap-2 overflow-y-auto max-h-[60vh]'>
+          {userDummyData?.map((user, index) => (
+            <div
+              key={index}
+              onClick={() => setSelectedUser(user)}
+              className={`flex items-center gap-3 p-2 rounded-md cursor-pointer hover:bg-[#8185B2]/20 transition-all ${
+                selectedUser?._id === user._id ? 'bg-[#8185B2]/30' : ''
+              }`}
+            >
+              <img
+                src={user.profilePic || assets.avatar_icon}
+                alt=""
+                className='w-10 h-10 rounded-full object-cover'
+              />
+              <div className='flex flex-col'>
+                <p className='text-sm font-medium text-white'>{user.fullName}</p>
+                <span className='text-xs text-gray-400'>Offline</span>
+              </div>
+            </div>
+          ))}
+        </div>
 
-          <button
-            type='submit'
-            className='bg-gradient-to-r from-purple-400 to-violet-600 text-white p-2 rounded-full text-lg cursor-pointer'
-          >
-            Save
-          </button>
-        </form>
+      </div>
 
-        {/* ------ logo ------ */}
-        <img
-          className={`max-w-44 aspect-square rounded-full mx-10 max-sm:mt-10 ${
-            selectedImg && 'rounded-full'
-          }`}
-          src={selectedImg ? URL.createObjectURL(selectedImg) : authUser?.profilePic || assets.logo_icon}
-          alt=""
-        />
-
+      {/* Footer */}
+      <div className='border-t border-gray-700 pt-3'>
+        <p onClick={() => logout()} className='cursor-pointer text-sm text-gray-400 hover:text-white'>
+          Logout
+        </p>
       </div>
     </div>
   )
 }
 
-export default ProfilePage
+export default Sidebar
