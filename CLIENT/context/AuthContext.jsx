@@ -1,4 +1,4 @@
-import { createContext, useEffect, useState } from "react";
+import { createContext, useEffect, useRef, useState } from "react";
 import axios from 'axios';
 import toast from "react-hot-toast";
 import { io } from "socket.io-client";
@@ -14,16 +14,18 @@ export const AuthProvider = ({ children }) => {
     const [authUser, setAuthUser] = useState(null);
     const [onlineUsers, setOnlineUsers] = useState([]);
     const [socket, setSocket] = useState(null);
+    const socketRef = useRef(null); // synchronous guard, unlike state
 
     // Connect socket function to handle socket connection and online users updates
     const connectSocket = (userData) => {
-        if (!userData || socket?.connected) return;
+        if (!userData || socketRef.current?.connected) return;
+
         const newSocket = io(backendUrl, {
             query: {
                 userId: userData._id,
             }
         });
-        newSocket.connect();
+        socketRef.current = newSocket;
         setSocket(newSocket);
 
         newSocket.on("getOnlineUsers", (userIds) => {
@@ -71,7 +73,9 @@ export const AuthProvider = ({ children }) => {
         setOnlineUsers([]);
         axios.defaults.headers.common["token"] = null;
         toast.success("Logged out successfully");
-        socket?.disconnect();
+        socketRef.current?.disconnect();
+        socketRef.current = null;
+        setSocket(null);
     };
 
     // Update profile function to handle user profile updates

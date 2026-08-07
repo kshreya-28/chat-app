@@ -1,43 +1,55 @@
-import React from 'react'
-import assets, { imagesDummyData } from '../assets/assets'
+import React, { useContext } from 'react'
+import assets from '../assets/assets'
+import { ChatContext } from '../../context/ChatContext'
+import { AuthContext } from '../../context/AuthContext'
 
-const RightSidebar = ({ selectedUser }) => {
-  return selectedUser && (
-    <div className={`bg-[#8185B2]/10 text-white w-full h-full relative overflow-y-scroll overflow-x-hidden ${selectedUser ? "max-md:hidden" : ""}`}>
+const RightSidebar = () => {
+  const { selectedUser, messages } = useContext(ChatContext)
+  const { onlineUsers } = useContext(AuthContext)
 
-      {/* ------ profile info ------ */}
-      <div className='pt-16 flex flex-col items-center gap-2 text-xs font-light mx-auto px-4'>
-        <img src={selectedUser?.profilePic || assets.avatar_icon} alt="" className='w-20 aspect-[1/1] rounded-full' />
-        <h1 className='text-xl font-medium flex items-center justify-center gap-2 text-center'>
-          <p className='w-2 h-2 rounded-full bg-green-500'></p>
-          {selectedUser.fullName}
-        </h1>
-        <p className='text-center'>{selectedUser.bio}</p>
+  if (!selectedUser) return null
+
+  // Extract media/images sent in conversation
+  const mediaMessages = messages?.filter(msg => msg.image) || []
+
+  return (
+    <div className='h-full bg-[#001030]/20 text-white p-5 flex flex-col items-center overflow-y-auto max-md:hidden'>
+      <div className='flex flex-col items-center text-center mt-6 gap-2'>
+        <img 
+          src={selectedUser?.profilePic || assets.avatar_icon} 
+          alt="" 
+          className='w-20 h-20 rounded-full object-cover border-2 border-violet-500' 
+        />
+        <h3 className='text-lg font-semibold flex items-center gap-2 mt-2'>
+          {selectedUser?.fullName}
+          {onlineUsers?.includes(selectedUser?._id) && (
+            <span className="w-2.5 h-2.5 rounded-full bg-green-500"></span>
+          )}
+        </h3>
+        <p className='text-xs text-gray-400 max-w-[200px]'>
+          {selectedUser?.bio || "Hey, I am using QuickChat!"}
+        </p>
       </div>
 
-      <hr className='border-[#ffffff50] my-4' />
+      <hr className='w-full border-gray-700 my-5' />
 
-      {/* ------ media ------ */}
-      <div className='px-5 text-xs'>
-        <p>Media</p>
-        <div className='mt-2 max-h-[200px] overflow-y-scroll grid grid-cols-2 gap-4 opacity-80'>
-          {imagesDummyData.map((url, index) => (
-            <div
-              key={index}
-              onClick={() => window.open(url)}
-              className='cursor-pointer rounded'
-            >
-              <img src={url} alt="" className='h-full rounded-md object-cover' />
-            </div>
-          ))}
+      <div className='w-full'>
+        <p className='text-sm font-medium text-gray-300 mb-3'>Shared Media</p>
+        <div className='grid grid-cols-3 gap-2 max-h-[200px] overflow-y-auto'>
+          {mediaMessages.length > 0 ? (
+            mediaMessages.map((msg, index) => (
+              <img 
+                key={index} 
+                src={msg.image} 
+                alt="" 
+                className='w-full h-16 object-cover rounded cursor-pointer hover:opacity-80' 
+              />
+            ))
+          ) : (
+            <p className='text-xs text-gray-500 col-span-3'>No media shared yet</p>
+          )}
         </div>
       </div>
-
-      {/* ------ logout button ------ */}
-      <button className='absolute bottom-5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-purple-400 to-violet-600 text-white border-none text-sm font-light py-2 px-20 rounded-full cursor-pointer'>
-        Logout
-      </button>
-
     </div>
   )
 }

@@ -14,4 +14,4 @@ messageRouter.get("/:id", protectRoute, getMessages);
 messageRouter.post("/send/:id", protectRoute, sendMessage);
 messageRouter.put("/mark/:id", protectRoute, markMessageAsSeen);
 
-export default messageRouter;
+export default messageRouter; 
